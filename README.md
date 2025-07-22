@@ -12,8 +12,11 @@ Proyecto que simula sensores IoT enviando datos en tiempo real a través de Kafk
 1. Clona este repositorio:
 
 ```bash
-git clone https://github.com/Red33med/iot-monitoring.git
-cd iot-monitoring
+## Ambas son validas
+git clone https://github.com/Red33med/Iot-Monitoring.git
+git clone git@github.com:Red33med/Iot-Monitoring.git
+
+cd Iot-Monitoring
 ```
 
 2. Ejecutar el script de Docker Compose en el directorio del proyecto:

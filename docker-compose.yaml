@@ -1,0 +1,96 @@
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+    networks:
+      - iot-network
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.3
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_PROCESSES: broker
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      # Un único listener para uso interno y externo
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    networks:
+      - iot-network
+
+  timescaledb:
+    image: timescale/timescaledb:latest-pg14
+    environment:
+      POSTGRES_USER: iotuser
+      POSTGRES_PASSWORD: iotpass
+      POSTGRES_DB: iotdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./data/timescaledb:/var/lib/postgresql/data
+    networks:
+      - iot-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U iotuser -d iotdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-storage:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on:
+      - timescaledb
+    networks:
+      - iot-network
+
+  producer:
+    image: python:3.11-slim
+    volumes:
+      - ./producer:/app
+    working_dir: /app
+    command: >
+      sh -c "pip install kafka-python==2.0.2 six==1.17.0 -q &&
+            python producer.py"
+    depends_on:
+      kafka:
+        condition: service_started
+    networks:
+      - iot-network
+
+  consumer:
+    image: python:3.11-slim
+    volumes:
+    - ./consumer:/app
+    working_dir: /app
+    command: >
+      sh -c "pip install kafka-python==2.0.2 six==1.17.0 psycopg2-binary -q &&
+            python consumer.py"
+    depends_on:
+      kafka:
+        condition: service_started
+      timescaledb:
+        condition: service_healthy
+    networks:
+      - iot-network
+
+volumes:
+  grafana-storage:
+
+networks:
+  iot-network:
+    driver: bridge

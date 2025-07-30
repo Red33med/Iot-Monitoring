@@ -3,6 +3,7 @@ import time
 import psycopg2
 from kafka import KafkaConsumer
 
+TOPIC = "iot-sensors"
 
 def connect_db():
     while True:
@@ -29,21 +30,22 @@ def create_table(conn):
             humidity DOUBLE PRECISION
         );
     """)
-    # Crea hipertabla de TimescaleDB
+    # Crea hipertabla de TimescaleDB para datos con timestamp
     cursor.execute("SELECT create_hypertable('sensor_data', 'time', if_not_exists => TRUE);")
     conn.commit()
     cursor.close()
 
 def consume_messages():
-    conn = connect_db()
-    create_table(conn)
-
-    consumer = KafkaConsumer(
-        'iot-sensors',
+    conn = connect_db() # Conecta a la base de datos
+    create_table(conn) # Crea la tabla si no existe
+    
+    # Configura el consumidor
+    consumer = KafkaConsumer( 
+        TOPIC,
         bootstrap_servers='kafka:9092',
         auto_offset_reset='earliest',
         group_id='iot-group',
-        value_deserializer=lambda x: json.loads(x.decode('utf-8'))
+        value_deserializer=lambda x: json.loads(x.decode('utf-8')) # Convierte los JSON a diccionario Python
     )
 
     print("Consumidor escuchando mensajes...")

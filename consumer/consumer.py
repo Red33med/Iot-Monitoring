@@ -13,10 +13,10 @@ def connect_db():
                 user="iotuser",
                 password="iotpass"
             )
-            print("✅ Conectado a TimescaleDB")
+            print("Conectado a TimescaleDB")
             return conn
         except Exception as e:
-            print(f"❌ No se pudo conectar a DB: {e}")
+            print(f"No se pudo conectar a DB: {e}")
             time.sleep(5)
 
 def create_table(conn):
@@ -46,10 +46,10 @@ def consume_messages():
         value_deserializer=lambda x: json.loads(x.decode('utf-8'))
     )
 
-    print("✅ Consumidor escuchando mensajes...")
+    print("Consumidor escuchando mensajes...")
     for message in consumer:
         data = message.value
-        print(f"📥 Recibido: {data}")
+        print(f"Recibido: {data}")
 
         cursor = conn.cursor()
         cursor.execute("""

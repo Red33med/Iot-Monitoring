@@ -12,10 +12,10 @@ def create_producer():
                 value_serializer=lambda v: json.dumps(v).encode('utf-8'),
                 api_version_auto_timeout_ms=30000  # tiempo extra para detectar versión
             )
-            print("✅ Conectado al broker Kafka")
+            print("Conectado al broker Kafka")
             return producer
         except NoBrokersAvailable:
-            print("🔴 Kafka no disponible, reintentando en 5 segundos...")
+            print("Kafka no disponible, reintentando en 5 segundos...")
             time.sleep(5)
 
 def generate_sensor_data(sensor_id):

@@ -31,6 +31,19 @@ docker-compose up --build
 2. Iniciar sesión con el usuario admin y la contraseña admin
 3. Crear o importar el dashboard de ejemplo
 
+## Conectar la fuente de datos
+
+HostURL = timescaledb:5432
+Database = iotdb
+User = iotuser
+Password = iotpass
+TLS/SSL = Disable
+TimescaleDB = Activada
+Lo demas por defecto
+
+
+
+
 ## Para detener el proyecto:
 
 Ejecutar el script de Docker Compose en el directorio del proyecto:
